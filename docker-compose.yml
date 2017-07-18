@@ -4,12 +4,14 @@ services:
  nodepki:
   image: adito/nodepki-docker
   volumes:
+   - certs:/certs
    - data:/root/nodepki/data
    - data:/root/nodepki-client/data
    - data:/root/nodepki-webclient/data
    - ./conf/nodepki:/root/nodepki/data/config/
    - ./conf/client:/root/nodepki-client/data/config
    - ./conf/webclient:/root/nodepki-webclient/data/config
+   - ./api/webclient/request.js:/root/nodepki-webclient/controllers/request.js
   environment:
    - API_USERNAME=${API_USERNAME}
    - API_PASSWORD=${API_PASSWORD}
@@ -22,3 +24,4 @@ services:
 
 volumes:
  data:
+ certs:
