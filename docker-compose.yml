@@ -1,0 +1,24 @@
+version: '2'
+services:
+
+ nodepki:
+  image: adito/nodepki-docker
+  volumes:
+   - data:/root/nodepki/data
+   - data:/root/nodepki-client/data
+   - data:/root/nodepki-webclient/data
+   - ./conf/nodepki:/root/nodepki/data/config/
+   - ./conf/client:/root/nodepki-client/data/config
+   - ./conf/webclient:/root/nodepki-webclient/data/config
+  environment:
+   - API_USERNAME=${API_USERNAME}
+   - API_PASSWORD=${API_PASSWORD}
+
+ proxy:
+  image: vimagick/dante
+  restart: always
+  ports:
+   - "1080:1080"
+
+volumes:
+ data:
