@@ -1,8 +1,16 @@
 version: '2'
 services:
 
+ proxy:
+  image: vimagick/dante
+  restart: always
+  ports:
+   - "1080:1080"
+
  nodepki:
   image: adito/nodepki-docker
+  depends_on:
+   - proxy
   volumes:
    - certs:/certs
    - data:/root/nodepki/data
@@ -12,16 +20,33 @@ services:
    - ./conf/client:/root/nodepki-client/data/config
    - ./conf/webclient:/root/nodepki-webclient/data/config
    - ./api/webclient/request.js:/root/nodepki-webclient/controllers/request.js
+   - ./data:/root/nodepki/data
   environment:
    - API_USERNAME=${API_USERNAME}
    - API_PASSWORD=${API_PASSWORD}
 
- proxy:
-  image: vimagick/dante
+ rabbitmq:
+  image: marcelmaatkamp/rabbitmq-mqtt-ldap
   restart: always
+  hostname: rabbitmq
+  environment:
+   - RABBITMQ_NODENAME=rabbitmq@rabbitmq
   ports:
-   - "1080:1080"
+   - 5671:5671
+  volumes:
+   - certs:/certs
+   - rabbitmq:/var/lib/rabbitmq/mnesia
+   - ./conf/rabbitmq/rabbitmq.config:/etc/rabbitmq/rabbitmq.config
+
+ server:
+  image: node
+  command: node /application/server.js
+  volumes:
+   - ./api/nodejs:/application
+   - certs:/certs
+
 
 volumes:
  data:
  certs:
+ rabbitmq:

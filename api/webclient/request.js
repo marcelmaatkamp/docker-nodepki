@@ -63,12 +63,12 @@ module.exports = function(req, res) {
 
                         // Create certificate key
                         passparam = (requestdata.key.passphrase === '') ? '' : '-aes256 -passout pass:' + requestdata.key.passphrase;
-                        exec('openssl genrsa -out key.pem ' + passparam + ' 2048', {
+                        exec('openssl genrsa -out domain.key ' + passparam + ' 2048', {
                             cwd: tempdir
                         }, function(error, stdout, stderr) {
                             if(!error) {
                                 // Save the key in variable
-                                page.content.key = fs.readFileSync(tempdir + 'key.pem')
+                                page.content.key = fs.readFileSync(tempdir + 'domain.key')
 
                                 // Is request for a client certificate or for a server certificate?
                                 var opensslconf;
@@ -96,7 +96,7 @@ module.exports = function(req, res) {
 
                                 // Create csr.
                                 passparam = (requestdata.key.passphrase === '') ? '' : '-passin pass:' + requestdata.key.passphrase;
-                                exec('openssl req -config ' + opensslconf + ' -key key.pem -new -sha256 -out cert.csr ' + passparam + ' -subj "/C='+requestdata.certificate.country+'/ST='+requestdata.certificate.state+'/L='+requestdata.certificate.locality+'/O='+requestdata.certificate.organization+'/CN='+requestdata.certificate.cname+'"', {
+                                exec('openssl req -config ' + opensslconf + ' -key domain.key -new -sha256 -out cert.csr ' + passparam + ' -subj "/C='+requestdata.certificate.country+'/ST='+requestdata.certificate.state+'/L='+requestdata.certificate.locality+'/O='+requestdata.certificate.organization+'/CN='+requestdata.certificate.cname+'"', {
                                     cwd: tempdir
                                 }, function(error, stdout, stderr) {
                                     if(!error) {
@@ -158,7 +158,7 @@ module.exports = function(req, res) {
                             log("Cert created successfully.")
 
                             page.content.cert = response.cert
-                            fs.writeFileSync( tempdir + "domain.crt", response.cert)
+                            fs.writeFileSync( tempdir + "signed.crt", response.cert)
 
                             // Request intermediate certificate ... we'll display it as well
                             apiclient.request(global.apipath + '/ca/cert/get/', 'POST', { data: { ca: 'intermediate' } } ).then(function(response) {
@@ -166,11 +166,14 @@ module.exports = function(req, res) {
                                     page.content.intermediatecert = response.cert
 
                                     fs.writeFileSync(tempdir + "intermediate.pem", response.cert)
-                                    fs.writeFileSync(tempdir + "bundle.pem", page.content.cert)
-                                    fs.appendFileSync(tempdir + "bundle.pem", response.cert)
+
+                                    fs.writeFileSync(tempdir + "chained.pem", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
+                                    fs.appendFileSync(tempdir + "chained.pem", page.content.cert)
+                                    fs.appendFileSync(tempdir + "chained.pem", response.cert)
 
                                     fs.removeSync(tempdir + "openssl.cnf");
                                     fs.removeSync(tempdir + "cert.csr");
+
                                     resolve(page)
                                 } else {
                                     reject("Error while retrieving intermediate cert.")
