@@ -16,11 +16,10 @@ services:
    - data:/root/nodepki/data
    - data:/root/nodepki-client/data
    - data:/root/nodepki-webclient/data
-   - ./conf/nodepki:/root/nodepki/data/config
-   - ./conf/client:/root/nodepki-client/data/config
-   - ./conf/webclient:/root/nodepki-webclient/data/config
+   - ./applications/nodepki/data/config:/root/nodepki/data/config
+   - ./applications/nodepki-client/data/config:/root/nodepki-client/data/config
+   - ./applications/nodepki-webclient/data/config:/root/nodepki-webclient/data/config
    - ./applications/nodepki-webclient/api/webclient/controllers/request.js:/root/nodepki-webclient/controllers/request.js
-   - ./data:/root/nodepki/data
   environment:
    - API_USERNAME=${API_USERNAME}
    - API_PASSWORD=${API_PASSWORD}
@@ -36,11 +35,13 @@ services:
   volumes:
    - certs:/certs
    - rabbitmq:/var/lib/rabbitmq/mnesia
-   - ./conf/rabbitmq/rabbitmq.config:/etc/rabbitmq/rabbitmq.config
+   - ./applications/rabbitmq/etc/rabbitmq.config:/etc/rabbitmq/rabbitmq.config
 
  server1:
   image: node
   command: node /application/server.js
+  environment:
+   - SERVERNAME=server1
   volumes:
    - ./applications/server:/application
    - certs:/certs
@@ -48,10 +49,11 @@ services:
  server2:
   image: node
   command: node /application/server.js
+  environment:
+   - SERVERNAME=server2
   volumes:
    - ./applications/server:/application
    - certs:/certs
-
 
 volumes:
  data:
