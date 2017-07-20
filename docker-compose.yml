@@ -16,10 +16,10 @@ services:
    - data:/root/nodepki/data
    - data:/root/nodepki-client/data
    - data:/root/nodepki-webclient/data
-   - ./conf/nodepki:/root/nodepki/data/config/
+   - ./conf/nodepki:/root/nodepki/data/config
    - ./conf/client:/root/nodepki-client/data/config
    - ./conf/webclient:/root/nodepki-webclient/data/config
-   - ./api/webclient/request.js:/root/nodepki-webclient/controllers/request.js
+   - ./applications/nodepki-webclient/api/webclient/controllers/request.js:/root/nodepki-webclient/controllers/request.js
    - ./data:/root/nodepki/data
   environment:
    - API_USERNAME=${API_USERNAME}
@@ -38,11 +38,18 @@ services:
    - rabbitmq:/var/lib/rabbitmq/mnesia
    - ./conf/rabbitmq/rabbitmq.config:/etc/rabbitmq/rabbitmq.config
 
- server:
+ server1:
   image: node
   command: node /application/server.js
   volumes:
-   - ./api/nodejs:/application
+   - ./applications/server:/application
+   - certs:/certs
+
+ server2:
+  image: node
+  command: node /application/server.js
+  volumes:
+   - ./applications/server:/application
    - certs:/certs
 
 
