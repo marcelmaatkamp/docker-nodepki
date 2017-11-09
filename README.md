@@ -1,11 +1,12 @@
 # NODEPKI
 
-Modified version from https://github.com/aditosoftware/nodepki-webclient where certificates are written to /certs/<domain>/
- * key.pem
- * domain.crt
- * intermediate.pem
- * bundle.pem
-
+Modified version from https://github.com/aditosoftware/nodepki-webclient where certificates are written to /certs/<domain>
+  
+ * domain.key        
+ * intermediate.pem  
+ * root.cert
+ * signed.crt
+  
 ## Start
 
 ```
@@ -25,6 +26,12 @@ Setup socks5-proxy port 1080 and goto http://nodepki:5000 (thomas/test) and requ
 ## Usage
 
 Generated certificates can be found in /certs where other containers can pick them up.
+
+```
+$ ls /usr/share/ca-certificates/extra/
+intermediate.crt  root.crt
+$ sudo dpkg-reconfigure ca-certificates
+```
 
 ## Install and verify root cert
 
