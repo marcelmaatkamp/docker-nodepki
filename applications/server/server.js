@@ -6,7 +6,7 @@ var servername = process.env.SERVERNAME;
 const options = {
   key: fs.readFileSync("/certs/"+servername+"/domain.key"),
   cert: fs.readFileSync("/certs/"+servername+"/signed.crt"),
-  ca: fs.readFileSync("/certs/"+servername+"/chained.pem")
+  ca: fs.readFileSync("/certs/"+servername+"/cacert.crt")
 };
 
 https.createServer(options, (req, res) => {
