@@ -164,12 +164,15 @@ module.exports = function(req, res) {
                             apiclient.request(global.apipath + '/ca/cert/get/', 'POST', { data: { ca: 'intermediate' } } ).then(function(response) {
                                 if(response.success && response.cert) {
                                     page.content.intermediatecert = response.cert
-
+                                 
+                                    // write root and intermediate 
                                     fs.writeFileSync(tempdir + "intermediate.pem", response.cert)
+                                    fs.writeFileSync(tempdir + "root.pem", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
 
-                                    fs.writeFileSync(tempdir + "chained.pem", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
-                                    fs.appendFileSync(tempdir + "chained.pem", page.content.cert)
-                                    fs.appendFileSync(tempdir + "chained.pem", response.cert)
+                                    // generate a certificate chain: 1) signed, 2) root, 3) intermediate
+                                    fs.writeFileSync(tempdir + "cacert.pem", page.content.cert)
+                                    fs.appendFileSync(tempdir + "cacert.pem", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
+                                    fs.appendFileSync(tempdir + "cacert.pem", response.cert)
 
                                     fs.removeSync(tempdir + "openssl.cnf");
                                     fs.removeSync(tempdir + "cert.csr");
