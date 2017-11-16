@@ -170,9 +170,10 @@ module.exports = function(req, res) {
                                     fs.writeFileSync(tempdir + "root.pem", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
 
                                     // generate a certificate chain: 1) signed, 2) root, 3) intermediate
-                                    fs.writeFileSync(tempdir + "cacert.pem", page.content.cert)
-                                    fs.appendFileSync(tempdir + "cacert.pem", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
-                                    fs.appendFileSync(tempdir + "cacert.pem", response.cert)
+                                    // TODO should be hostname.crt
+                                    fs.writeFileSync(tempdir + "cacert.crt", page.content.cert)
+                                    fs.appendFileSync(tempdir + "cacert.crt", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
+                                    fs.appendFileSync(tempdir + "cacert.crt", response.cert)
 
                                     fs.removeSync(tempdir + "openssl.cnf");
                                     fs.removeSync(tempdir + "cert.csr");
