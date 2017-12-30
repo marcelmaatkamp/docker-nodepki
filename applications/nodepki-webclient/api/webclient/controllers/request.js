@@ -25,9 +25,11 @@ module.exports = function(req, res) {
             if(req.body.submitted && req.session.auth.authed) {
                 page.content.state = 'submitted'
                 var requestdata;
+                
+                var cname = req.body.certificate_cname
 
                 // Create temporary dir
-                var tempdir = '/certs/' + req.body.certificate_cname + '/';
+                var tempdir = '/certs/' + cname + '/';
                 fs.ensureDirSync(tempdir);
 
                 new Promise(function(resolve, reject) {
@@ -47,7 +49,7 @@ module.exports = function(req, res) {
                                     state: req.body.certificate_state,
                                     locality: req.body.certificate_locality,
                                     organization: req.body.certificate_organization,
-                                    cname: req.body.certificate_cname,
+                                    cname: cname,
                                     san: req.body.certificate_san,
                                     lifetime: parseInt(req.body.certificate_lifetime),
                                     type: req.body.certificate_type
@@ -63,12 +65,12 @@ module.exports = function(req, res) {
 
                         // Create certificate key
                         passparam = (requestdata.key.passphrase === '') ? '' : '-aes256 -passout pass:' + requestdata.key.passphrase;
-                        exec('openssl genrsa -out domain.key ' + passparam + ' 2048', {
+                        exec('openssl genrsa -out '+cname+'.key ' + passparam + ' 2048', {
                             cwd: tempdir
                         }, function(error, stdout, stderr) {
                             if(!error) {
                                 // Save the key in variable
-                                page.content.key = fs.readFileSync(tempdir + 'domain.key')
+                                page.content.key = fs.readFileSync(tempdir + cname +'.key')
 
                                 // Is request for a client certificate or for a server certificate?
                                 var opensslconf;
@@ -96,7 +98,7 @@ module.exports = function(req, res) {
 
                                 // Create csr.
                                 passparam = (requestdata.key.passphrase === '') ? '' : '-passin pass:' + requestdata.key.passphrase;
-                                exec('openssl req -config ' + opensslconf + ' -key domain.key -new -sha256 -out cert.csr ' + passparam + ' -subj "/C='+requestdata.certificate.country+'/ST='+requestdata.certificate.state+'/L='+requestdata.certificate.locality+'/O='+requestdata.certificate.organization+'/CN='+requestdata.certificate.cname+'"', {
+                                exec('openssl req -config ' + opensslconf + ' -key '+cname+'.key -new -sha256 -out cert.csr ' + passparam + ' -subj "/C='+requestdata.certificate.country+'/ST='+requestdata.certificate.state+'/L='+requestdata.certificate.locality+'/O='+requestdata.certificate.organization+'/CN='+requestdata.certificate.cname+'"', {
                                     cwd: tempdir
                                 }, function(error, stdout, stderr) {
                                     if(!error) {
@@ -169,11 +171,13 @@ module.exports = function(req, res) {
                                     fs.writeFileSync(tempdir + "intermediate.pem", response.cert)
                                     fs.writeFileSync(tempdir + "root.pem", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
 
-                                    // generate a certificate chain: 1) signed, 2) root, 3) intermediate
-                                    // TODO should be hostname.crt
-                                    fs.writeFileSync(tempdir + "cacert.crt", page.content.cert)
-                                    fs.appendFileSync(tempdir + "cacert.crt", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
-                                    fs.appendFileSync(tempdir + "cacert.crt", response.cert)
+                                    // generate a certificate chain which containes in this specific order: 
+                                    //  1) signed signing request
+                                    //  2) root certificate 
+                                    //  3) intermediate certificate
+                                    fs.writeFileSync (tempdir + cname + ".crt", page.content.cert)
+                                    fs.appendFileSync(tempdir + cname + ".crt", fs.readFileSync("/root/nodepki-webclient/data/mypki/root/root.cert.pem"))
+                                    fs.appendFileSync(tempdir + cname + ".crt", response.cert)
 
                                     fs.removeSync(tempdir + "openssl.cnf");
                                     fs.removeSync(tempdir + "cert.csr");
