@@ -2,10 +2,11 @@
 
 Modified version from https://github.com/aditosoftware/nodepki-webclient where certificates are written to /certs/<domain>
   
- * domain.key        
- * intermediate.pem  
- * root.cert
- * signed.crt
+ * hostname.key - private key       
+ * intermediate.pem  - intermediate certificate
+ * root.cert - root certificate
+ * signed.crt - signed signing request and
+ * hostname.crt - signed,root,intermediate certificates
   
 ## Start
 
